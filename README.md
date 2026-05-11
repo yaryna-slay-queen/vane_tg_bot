@@ -25,7 +25,7 @@ flowchart TD
     B -->|Текст запиту| C[✦ Gemini 2.5 Flash\nВизначає координати]
     C -->|Lat / Lon| D[⛅ WeatherStack API\nПоточна погода]
     D -->|Погодні дані| E[✦ Gemini 2.5 Flash\nФорматує повідомлення]
-    E -->|Прогноз + поради| F([👤 Користувач отримує відповідь])
+    E -->|Прогноз + поради| F([👤 Користувач отримує\nвідповідь])
  
     style A fill:#1D9E75,color:#fff,stroke:#0F6E56
     style F fill:#1D9E75,color:#fff,stroke:#0F6E56
