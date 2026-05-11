@@ -17,7 +17,24 @@
 5. Ти отримуєш зрозумілий та дружній прогноз із порадами щодо одягу та активностей.
 
 ---
-
+## 🏗️ Архітектура проєкту
+ 
+```mermaid
+flowchart TD
+    A([👤 Користувач]) -->|Назва міста| B[✈️ Telegram Bot]
+    B -->|Текст запиту| C[✦ Gemini 2.5 Flash\nВизначає координати]
+    C -->|Lat / Lon| D[⛅ WeatherStack API\nПоточна погода]
+    D -->|Погодні дані| E[✦ Gemini 2.5 Flash\nФорматує повідомлення]
+    E -->|Прогноз + поради| F([👤 Користувач отримує відповідь])
+ 
+    style A fill:#1D9E75,color:#fff,stroke:#0F6E56
+    style F fill:#1D9E75,color:#fff,stroke:#0F6E56
+    style B fill:#185FA5,color:#fff,stroke:#0C447C
+    style C fill:#534AB7,color:#fff,stroke:#3C3489
+    style D fill:#BA7517,color:#fff,stroke:#854F0B
+    style E fill:#534AB7,color:#fff,stroke:#3C3489
+```
+---
 ## 🎯 Цільова аудиторія
 
 Vane буде корисним практично кожному:
