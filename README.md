@@ -38,6 +38,7 @@
 
 ```bash
 npm install @google/genai axios dotenv telegraf
+```bash
 
 ### 3. Налаштування оточення (.env)
 Створіть у кореневій папці проєкту файл з назвою .env за зразком файлу .env.example. Вам знадобиться заповнити такі змінні:
