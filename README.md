@@ -73,9 +73,9 @@ cp .env.example .env
 Відкрий `.env` і вкажи наступні ключі:
 
 ```env
-TELEGRAM_BOT_TOKEN=твій_токен_телеграм_бота
+TOKEN=твій_токен_телеграм_бота
 GEMINI_API_KEY=твій_ключ_gemini
-WEATHERSTACK_API_URL=http://api.weatherstack.com/current?access_key=твій_ключ_weatherstack&query=
+Url=http://api.weatherstack.com/current?access_key=твій_ключ_weatherstack&query=
 ```
 
 ### 4. Отримання API-ключів
