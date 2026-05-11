@@ -37,8 +37,7 @@
 Перейдіть у папку з проєктом та встановіть необхідні npm-пакети:
 
 ```bash
-npm install @google/genai axios dotenv telegraf
-```bash
+npm install @google/genai axios dotenv telegraf ```
 
 ### 3. Налаштування оточення (.env)
 Створіть у кореневій папці проєкту файл з назвою .env за зразком файлу .env.example. Вам знадобиться заповнити такі змінні:
