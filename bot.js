@@ -3,7 +3,6 @@ import axios from "axios";
 import { Telegraf } from "telegraf";
 import { GoogleGenAI } from "@google/genai";
 
-
 const bot = new Telegraf(process.env.TOKEN);
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const MODEL_NAME = "gemini-2.5-flash";
@@ -17,13 +16,17 @@ const fetchData = async (queryParam) => {
 const extractCoordinates = async (userText) => {
     const prompt = `
     You are a precise geocoding assistant. 
-    Analyze the user's text and find the city/location they are talking about.
-    Find the exact GPS coordinates (Latitude and Longitude) of this city.
+    Analyze the user's text and find the city, state, region, or country they are talking about.
+    Find the exact GPS coordinates (Latitude and Longitude) of this location. 
+    If the user mentions a state, region, or country (like "Massachusetts" or "Массачусетс"), return the coordinates of its capital or main central city (e.g., Boston for Massachusetts).
     
-    Return ONLY the coordinates in the format "latitude,longitude" (e.g., "50.4501,30.5234" for Kyiv, "48.9215,24.7097" for Ivano-Frankivsk).
-    No other words, no spaces, no punctuation except the comma. 
+    Return ONLY a JSON object with keys:
+    1. "coordinates" (string "latitude,longitude", e.g., "42.3601,-71.0589" or "50.4501,30.5234")
+    2. "cityName" (string, standard official name of the location or its center in Ukrainian, e.g., "Массачусетс (Бостон)", "Львів", "Київ").
     
-    If there is absolutely no city name in the user's text, reply ONLY with the word "None".
+    No other words, no markdown formatting outside of JSON, no spaces outside the structure. 
+    
+    If there is absolutely no location name in the user's text, reply ONLY with the word "None".
     
     User text: "${userText}"
     `;
@@ -35,7 +38,11 @@ const extractCoordinates = async (userText) => {
         });
         
         const responseText = response.text.trim();
-        return responseText === "None" ? null : responseText;
+        if (responseText === "None") return null;
+        
+        // Очищаємо можливі маркдаун-теги \`\`\`json ... \`\`\`, які іноді додає модель
+        const cleanJsonString = responseText.replace(/```json|```/g, "").trim();
+        return JSON.parse(cleanJsonString); 
     } catch (e) {
         console.error("Помилка визначення координат через Gemini:", e);
         return null;
@@ -43,7 +50,7 @@ const extractCoordinates = async (userText) => {
 };
 
 bot.start((ctx) => {
-    ctx.reply("Привіт! Я - твій віртуальний синоптик. Куди збираєшся йти сьогодні?");
+    ctx.reply("Привіт! Я - твій віртуальний синоптик. Кудись збираєшся йти сьогодні?");
 });
 
 bot.on('text', async (ctx) => {
@@ -52,13 +59,17 @@ bot.on('text', async (ctx) => {
     await ctx.sendChatAction('typing');
 
     try {
-        const coordinates = await extractCoordinates(userMessage);
+        // Витягуємо об'єкт з координатами та уніфікованою назвою локації
+        const geoData = await extractCoordinates(userMessage);
 
-        if (!coordinates) {
-            return ctx.reply("Я не зміг знайти назву міста у твоєму повідомленні. Спробуй написати чіткіше, наприклад: 'Яка зараз погода в Харкові?'");
+        if (!geoData || !geoData.coordinates) {
+            return ctx.reply("Я не зміг знайти назву міста чи регіону у твоєму повідомленні. Спробуй написати чіткіше, наприклад: 'Яка зараз погода в Харкові?' або 'Що там з погодою в Массачусетсі?'");
         }
 
-        console.log(`Знайдені координати для запиту: ${coordinates}`);
+        const coordinates = geoData.coordinates;
+        const userCity = geoData.cityName; // Правильна назва міста/штату українською
+
+        console.log(`Знайдені координати: ${coordinates} для локації: ${userCity}`);
 
         const data = await fetchData(coordinates);
 
@@ -72,19 +83,20 @@ bot.on('text', async (ctx) => {
 
         await ctx.sendChatAction('typing');
 
+        // Передаємо у фінальний промпт зафіксовану назву userCity
         const finalPrompt = `
         You are a helpful local weather assistant.
         I will give you raw weather data from coordinates. Translate everything to Ukrainian, and write a beautifully formatted Telegram message.
         
         Raw Data:
-        - City Name detected by API: ${location?.name}
+        - Target Location Name: ${userCity}
         - Country detected by API: ${location?.country}
         - Coordinates used: ${coordinates}
         - Temperature: ${temperature}°C
         - Weather condition: ${weatherStatus}
 
         Your output format MUST be strictly like this (keep the asterisks for bold text):
-        *Місто:* [Translated City Name], [Translated Country Name] (📍 [Coordinates])
+        *Місто:* ${userCity}, [Translated Country Name] (📍 [Coordinates])
         *Температура:* ${temperature}°C
         *Погода:* [Translated Weather condition (e.g., Хмарно, Ясно, Дощ)]
 
