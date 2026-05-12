@@ -40,7 +40,6 @@ const extractCoordinates = async (userText) => {
         const responseText = response.text.trim();
         if (responseText === "None") return null;
         
-        // Очищаємо можливі маркдаун-теги \`\`\`json ... \`\`\`, які іноді додає модель
         const cleanJsonString = responseText.replace(/```json|```/g, "").trim();
         return JSON.parse(cleanJsonString); 
     } catch (e) {
@@ -59,7 +58,6 @@ bot.on('text', async (ctx) => {
     await ctx.sendChatAction('typing');
 
     try {
-        // Витягуємо об'єкт з координатами та уніфікованою назвою локації
         const geoData = await extractCoordinates(userMessage);
 
         if (!geoData || !geoData.coordinates) {
@@ -67,7 +65,7 @@ bot.on('text', async (ctx) => {
         }
 
         const coordinates = geoData.coordinates;
-        const userCity = geoData.cityName; // Правильна назва міста/штату українською
+        const userCity = geoData.cityName;
 
         console.log(`Знайдені координати: ${coordinates} для локації: ${userCity}`);
 
@@ -83,7 +81,6 @@ bot.on('text', async (ctx) => {
 
         await ctx.sendChatAction('typing');
 
-        // Передаємо у фінальний промпт зафіксовану назву userCity
         const finalPrompt = `
         You are a helpful local weather assistant.
         I will give you raw weather data from coordinates. Translate everything to Ukrainian, and write a beautifully formatted Telegram message.
